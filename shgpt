@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""shgpt: natural-language bash command generator.
-
-Expects:
-  SHGPT_API_KEY   OpenAI-compatible API key
-  SHGPT_API_URL   optional, default https://api.deepseek.com/chat/completions
-  SHGPT_MODEL     optional, default deepseek-chat
-"""
 import itertools
 import json
 import os
@@ -17,7 +10,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 
-def _spinner(stop: threading.Event) -> None:
+def _spinner(stop):
     frames = itertools.cycle(["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"])
     while not stop.is_set():
         sys.stdout.write(f"\r{next(frames)}")
@@ -27,7 +20,7 @@ def _spinner(stop: threading.Event) -> None:
     sys.stdout.flush()
 
 
-def generate_command(query: str) -> str:
+def generate_command(query):
     api_key = os.environ.get("SHGPT_API_KEY")
     if not api_key:
         print("error: set SHGPT_API_KEY", file=sys.stderr)
@@ -37,8 +30,8 @@ def generate_command(query: str) -> str:
     model = os.environ.get("SHGPT_MODEL", "deepseek-chat")
 
     prompt = (
-        f"Напиши одну bash-команду для запроса: {query}\n"
-        "Ответь только командой, без пояснений, без markdown."
+        f"Write a single bash command for: {query}\n"
+        "Reply with only the command, no explanation, no markdown."
     )
 
     req = Request(
@@ -73,9 +66,9 @@ def generate_command(query: str) -> str:
     return data["choices"][0]["message"]["content"].strip().strip("`").strip()
 
 
-def main() -> None:
+def main():
     if len(sys.argv) < 2:
-        print("usage: shgpt <описание команды>", file=sys.stderr)
+        print("usage: shgpt <command description>", file=sys.stderr)
         sys.exit(1)
 
     query = " ".join(sys.argv[1:])
@@ -84,7 +77,6 @@ def main() -> None:
     print(f"$ {command}")
     answer = input("Execute? [y/N] ").strip().lower()
     if answer == "y":
-        # ponytail: shell=True is required for pipelines/redirects; user confirms first
         subprocess.run(command, shell=True)
     else:
         print("cancelled")
